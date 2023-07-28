@@ -1,0 +1,35 @@
+This is the SQL commands used to create the tables for this exercise.
+=====================================================================
+
+CREATE TABLE IF NOT EXISTS quizprompts (id SERIAL NOT NULL PRIMARY KEY, 
+                prompttext VARCHAR NOT NULL);
+				
+CREATE TABLE IF NOT EXISTS quizquestions (id SERIAL NOT NULL PRIMARY KEY, 
+                questiontext VARCHAR NOT NULL,
+		        optionname CHAR NOT NULL,
+                duplicate BOOL DEFAULT FALSE,
+                promptid INT NOT NULL,
+                FOREIGN KEY (promptid)
+                    REFERENCES quizprompts (id)
+                    ON UPDATE CASCADE);
+					
+CREATE TABLE IF NOT EXISTS quizoptions (id SERIAL NOT NULL PRIMARY KEY,
+                optionname CHAR NOT NULL,
+                optiontext VARCHAR NOT NULL,
+		        questionid INTEGER NOT NULL, 
+                FOREIGN KEY (questionid)
+                    REFERENCES quizquestions (id)
+                    ON UPDATE CASCADE);
+					
+CREATE TABLE IF NOT EXISTS quizusers (id SERIAL NOT NULL PRIMARY KEY,
+		        username VARCHAR NOT NULL UNIQUE,
+                firstname VARCHAR NOT NULL,
+                lastname VARCHAR NOT NULL);
+				
+CREATE TABLE IF NOT EXISTS quizhistory (id SERIAL NOT NULL PRIMARY KEY,
+                questionid INTEGER NOT NULL,
+                optionname CHAR NOT NULL,
+		userid INTEGER NOT NULL,
+                FOREIGN KEY (userid)
+                    REFERENCES quizusers (id)
+                    ON UPDATE CASCADE);

@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Quiz Users</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@1/css/pico.min.css">
+</head>
+<body>
+    <!-- User Entry Form -->
+    <div class="container">
+        <h2>Add a New User</h2>
+        <form id="userForm">
+            <label for="userName">Username:</label>
+            <input type="text" id="userName" name="userName" required><br>
+
+            <label for="firstName">First Name:</label>
+            <input type="text" id="firstName" name="firstName" required><br>
+
+            <label for="lastName">Last Name:</label>
+            <input type="text" id="lastName" name="lastName" required><br>
+
+            <button type="submit" class="button">Add User</button>
+        </form>
+    </div>
+
+    <!-- Table to Display Users -->
+    <div class="container">
+        <h2>Quiz Users</h2>
+        <table id="userTable" class="table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Username</th>
+                    <th>First Name</th>
+                    <th>Last Name</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Data will be populated here -->
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Modal Dialogue -->
+    <div id="modal" class="modal">
+        <div class="modal__content">
+            <span id="closeModal" class="modal__close">&times;</span>
+            <h3 id="modalTitle">Status Code</h3>
+            <p id="modalMessage"></p>
+        </div>
+    </div>
+
+    <!-- JavaScript to handle form submission, table population, and modal dialogue -->
+    <script>
+        const modal = document.getElementById("modal");
+        const closeModal = document.getElementById("closeModal");
+
+        // Function to show the modal with the given title and message
+        function showModal(title, message) {
+            const modalTitle = document.getElementById("modalTitle");
+            const modalMessage = document.getElementById("modalMessage");
+            modalTitle.textContent = title;
+            modalMessage.textContent = message;
+            modal.style.display = "block";
+        }
+
+        // Function to hide the modal
+        function hideModal() {
+            modal.style.display = "none";
+        }
+
+        // Event listener for the close button of the modal
+        closeModal.addEventListener("click", hideModal);
+
+        // Function to clear the form fields
+        function clearFormFields() {
+            document.getElementById("userName").value = "";
+            document.getElementById("firstName").value = "";
+            document.getElementById("lastName").value = "";
+        }
+
+        // Function to submit the user form
+        document.getElementById("userForm").addEventListener("submit", function (event) {
+            event.preventDefault(); // Prevent default form submission behavior
+
+            // Get form data
+            const formData = new FormData(event.target);
+
+            // Create an object to hold the user data
+            const user = {
+                userName: formData.get("userName"),
+                firstName: formData.get("firstName"),
+                lastName: formData.get("lastName")
+            };
+
+            // Send a POST request to add the new user
+            fetch("http://localhost:5223/api/QuizUsers", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(user)
+            })
+            .then(response => {
+                // Show the modal with the returned status code
+                showModal("Status Code", `Returned HTTP status code: ${response.status}`);
+                return response.json();
+            })
+            .then(data => {
+                // Clear the form fields
+                clearFormFields();
+
+                // Refresh the table to show the updated data
+                refreshTable();
+            })
+            .catch(error => console.error("Error adding user:", error));
+        });
+
+        // Function to refresh the table and reload data
+        function refreshTable() {
+            // Clear the existing table data
+            const tableBody = document.querySelector("#userTable tbody");
+            tableBody.innerHTML = "";
+
+            // Fetch all users from the API
+            fetch("http://localhost:5223/api/QuizUsers")
+            .then(response => response.json())
+            .then(data => {
+                // Populate the table with the fetched user data
+                data.forEach(user => {
+                    const newRow = document.createElement("tr");
+                    newRow.innerHTML = `
+                        <td>${user.id}</td>
+                        <td>${user.userName}</td>
+                        <td>${user.firstName}</td>
+                        <td>${user.lastName}</td>
+                    `;
+                    tableBody.appendChild(newRow);
+                });
+            })
+            .catch(error => console.error("Error fetching users:", error));
+        }
+
+        // Refresh the table on page load
+        refreshTable();
+    </script>
+</body>
+</html>
